@@ -1,31 +1,32 @@
 var fs = require("fs-extra");
-var expect = require("chai").expect;
-var compile = require("../lib/spritesheet.js").compile;
+
+var chai = require('chai');
+chai.use(require('chai-as-promised'));
+var expect = chai.expect;
+
+var Sheet = require("../lib/spritesheet.js");
 
 function testdir(name, cb) {
-	compile("test/testsprites/" + name, "test/testsprites/out/" + name, {}, cb);
+    return new Sheet(
+        "test/testsprites/" + name,
+        "test/testsprites/out/" + name, 
+        {}
+    ).compile();
 };
 
 describe("spritesheet", function() {
 	describe("#compile()", function() {
-		it("should report an error for a non-existent directory", function(done) { 
-			testdir("nonexistent", function(err, result) {
-				expect(err).to.not.equal(null);
-				done();
-			});
+		it("should report an error for a non-existent directory", function() { 
+			expect(testdir("nonexistent")).to.eventually.be.rejected;
 		});
-		it("should report an error for an empty directory", function(done) { 
+		it("should report an error for an empty directory", function() { 
 			if(!fs.exists("test/testsprites/empty")) {
 				fs.mkdir("test/testsprites/empty");
 			}
-			testdir("empty", function(err, result) {
-				expect(err).to.not.equal(null);
-				done();
-			});
+			expect(testdir("empty")).to.eventually.be.rejected;
 		});
 		it("should successfully compile single test sprite", function(done) { 
-			testdir("onesprite", function(err, result) {
-				expect(err).to.equal(null);
+			testdir("onesprite").then(result => {
 				expect(result.spriteCount).to.equal(1);
 				done();
 			});
@@ -34,9 +35,11 @@ describe("spritesheet", function() {
 			var err;
 			var result;
 			before(function(before_done) {
-				testdir("animations", function(e, r) {
-					err = e;
+				testdir("animations").then(r => {
 					result = r;
+                }).catch((e) => {
+					err = e;
+                }).then(() => {
 					before_done();
 				});
 			});
@@ -51,9 +54,6 @@ describe("spritesheet", function() {
 				return null;
 			};
 
-			it("should not have an error", function() {
-				expect(err).to.equal(null);
-			});
 			it("should generate an animation", function() {
 				expect(result.spriteCount).to.equal(15);
 			});

@@ -18,5 +18,9 @@
     "jimp": ">= 0.2.4"
   },
   "author": "mcccclean",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "chai-as-promised": "^6.0.0"
+  }
 }
